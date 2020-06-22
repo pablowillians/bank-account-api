@@ -1,0 +1,39 @@
+version: '3.5'
+
+x-service-defaults: &service-defaults
+  build:
+    context: .
+    dockerfile: Dockerfile
+  volumes:
+    - .:/umbrella
+  ports:
+    - "4000:4000"
+  depends_on:
+    - db
+
+x-env-vars: &env-vars
+  POSTGRES_HOST: db
+  POSTGRES_USERNAME: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DATABASE: bank_account
+
+services:
+  web:
+    << : *service-defaults
+    environment:
+      MIX_ENV: dev
+      << : *env-vars
+
+  test:
+    << : *service-defaults
+    command: mix coveralls --umbrella
+    environment:
+      MIX_ENV: test
+      << : *env-vars
+
+  db:
+    image: postgres
+    environment:
+      << : *env-vars
+    ports:
+      - "5432:5432"
