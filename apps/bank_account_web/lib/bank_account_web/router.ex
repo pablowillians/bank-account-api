@@ -7,6 +7,7 @@ defmodule BankAccountWeb.Router do
 
   scope "/api", BankAccountWeb do
     pipe_through :api
+    post "/account", AccountController, :create_or_update
   end
 
   # Enables LiveDashboard only for development
