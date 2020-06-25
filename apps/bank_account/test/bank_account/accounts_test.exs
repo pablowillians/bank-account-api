@@ -111,5 +111,28 @@ defmodule BankAccount.AccountsTest do
       random_code = Accounts.generate_unused_referral_code()
       assert String.match?(random_code, ~r/[0-9]{8}/)
     end
+
+    test "list_indications/1 with incomplete account returns error" do
+      account = account_fixture() |> Map.put(:status, false)
+
+      assert {:error, :account_incomplete} = Accounts.list_indications(account)
+    end
+
+    test "list_indications/1 when there is no indications and account is complete returns an empty list" do
+      account = account_fixture()
+
+      assert [] = Accounts.list_indications(account)
+    end
+
+    test "list_indications/1 with account complete and indications completed returns an list of accounts with id and name" do
+      account = account_fixture()
+
+      account_fixture(%{
+        indication_referral_code: account.referral_code,
+        cpf: Brcpfcnpj.cpf_generate()
+      })
+
+      assert [%{id: id, name: name}] = Accounts.list_indications(account)
+    end
   end
 end

@@ -173,4 +173,18 @@ defmodule BankAccount.Accounts do
   end
 
   defdelegate decrypt_value(value), to: Account
+
+  def list_indications(%Account{status: true} = account) do
+    referral_code = account.referral_code
+
+    query = from a in Account,
+      where: a.indication_referral_code == ^referral_code and a.status == true,
+      select: %{id: a.id, name: a.name}
+
+    Repo.all(query)
+  end
+
+  def list_indications(%Account{status: false}) do
+    {:error, :account_incomplete}
+  end
 end
