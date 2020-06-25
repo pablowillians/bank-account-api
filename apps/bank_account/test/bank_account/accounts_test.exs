@@ -112,6 +112,18 @@ defmodule BankAccount.AccountsTest do
       assert String.match?(random_code, ~r/[0-9]{8}/)
     end
 
+    test "is_account_full_filled?/1 with incomplete account returns false" do
+      account = account_fixture(%{email: nil, status: false})
+
+      refute Accounts.is_account_full_filled?(account)
+    end
+
+    test "is_account_full_filled?/1 with complete account returns true" do
+      account = account_fixture()
+
+      assert Accounts.is_account_full_filled?(account)
+    end
+
     test "list_indications/1 with incomplete account returns error" do
       account = account_fixture() |> Map.put(:status, false)
 

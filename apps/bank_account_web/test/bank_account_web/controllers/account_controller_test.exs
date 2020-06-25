@@ -70,7 +70,8 @@ defmodule BankAccountWeb.AccountControllerTest do
     setup [:create_account]
 
     test "renders account when data is valid", %{conn: conn} do
-      conn = post(conn, Routes.account_path(conn, :create_or_update), account: @update_attrs)
+      update_attrs = Map.delete(@update_attrs, "status")
+      conn = post(conn, Routes.account_path(conn, :create_or_update), account: update_attrs)
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
       assert %{
@@ -84,7 +85,7 @@ defmodule BankAccountWeb.AccountControllerTest do
                "name" => "some updated name",
                "referral_code" => referral_code,
                "state" => "some updated state",
-               "status" => false
+               "status" => true
              } = json_response(conn, 201)["data"]
       assert cpf == @update_attrs.cpf
       assert String.match?(referral_code, ~r/[0-9]{8}/)

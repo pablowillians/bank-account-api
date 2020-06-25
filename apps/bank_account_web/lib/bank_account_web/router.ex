@@ -8,6 +8,7 @@ defmodule BankAccountWeb.Router do
   scope "/api", BankAccountWeb do
     pipe_through :api
     post "/account", AccountController, :create_or_update
+    get "/account/indications/:referral_code", AccountController, :list_indications
   end
 
   # Enables LiveDashboard only for development

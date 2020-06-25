@@ -21,4 +21,11 @@ defmodule BankAccountWeb.FallbackController do
     |> put_view(BankAccountWeb.ErrorView)
     |> render(:"404")
   end
+
+  def call(conn, {:error, :account_incomplete}) do
+    conn
+    |> put_status(:unprocessable_entity)
+    |> put_view(BankAccountWeb.ErrorView)
+    |> render("error.json", error: "Account is incomplete. You must complete your register before using this feature.")
+  end
 end

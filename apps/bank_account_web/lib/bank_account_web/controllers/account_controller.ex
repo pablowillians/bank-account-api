@@ -52,10 +52,8 @@ defmodule BankAccountWeb.AccountController do
   """
   def create_or_update(conn, %{"account" => account_params}) do
     with {:ok, %Account{} = account} <- Accounts.create_or_update_account(account_params) do
-      is_account_full_filled = Accounts.is_account_full_filled?(account)
-
-      view = unless is_account_full_filled, do: "show.json", else: "account_complete.json"
-      status = unless is_account_full_filled, do: :success, else: :created
+      view = unless account.status, do: "show.json", else: "account_complete.json"
+      status = unless account.status, do: :ok, else: :created
 
       conn
       |> put_status(status)
@@ -67,5 +65,17 @@ defmodule BankAccountWeb.AccountController do
     conn
     |> put_status(:unprocessable_entity)
     |> render("error.json", error: %{account: ["is required"]})
+  end
+
+  @spec list_indications(any, map) :: {:error, :not_found} | Plug.Conn.t()
+  def list_indications(conn, %{"referral_code" => referral_code}) do
+    with %Account{} = account <- Accounts.get_account_by_referral_code(referral_code) do
+      indications = Accounts.list_indications(account)
+
+      conn
+      |> render("indications.json", indications: indications)
+    else
+      nil -> {:error, :not_found}
+    end
   end
 end

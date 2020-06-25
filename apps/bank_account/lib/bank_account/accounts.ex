@@ -8,7 +8,6 @@ defmodule BankAccount.Accounts do
 
   alias BankAccount.Accounts.Account
 
-
   @doc """
   Gets a single account, filtered by cpf field.
 
@@ -16,10 +15,10 @@ defmodule BankAccount.Accounts do
 
   ## Examples
 
-      iex> get_account_by_cpf(123)
+      iex> get_account_by_cpf("123")
       %Account{}
 
-      iex> get_account_by_cpf(456)
+      iex> get_account_by_cpf("456")
       nil
 
   """
@@ -28,16 +27,16 @@ defmodule BankAccount.Accounts do
   def get_account_by_cpf(cpf) when is_nil(cpf), do: nil
 
   @doc """
-  Gets a single account, filtered by cpf field.
+  Gets a single account, filtered by referral_code field.
 
   Returns `nil` if no result was found. Raises if more than one entry.
 
   ## Examples
 
-      iex> get_account_by_cpf(123)
+      iex> get_account_by_referral_code("123")
       %Account{}
 
-      iex> get_account_by_cpf(456)
+      iex> get_account_by_referral_code("456")
       nil
 
   """
@@ -131,11 +130,14 @@ defmodule BankAccount.Accounts do
   """
   def is_account_full_filled?(%Account{} = account) do
     with false <- account.status do
-      account
-      |> Map.delete(:referral_code)
-      |> Map.delete(:indication_referral_code)
-      |> Map.values()
-      |> Enum.any?(fn value -> not is_nil(value) end)
+      has_any_nil_value =
+        account
+        |> Map.delete(:referral_code)
+        |> Map.delete(:indication_referral_code)
+        |> Map.values()
+        |> Enum.any?(fn value -> is_nil(value) end)
+
+      not has_any_nil_value
     end
   end
 
@@ -186,5 +188,76 @@ defmodule BankAccount.Accounts do
 
   def list_indications(%Account{status: false}) do
     {:error, :account_incomplete}
+  end
+
+  alias BankAccount.Accounts.User
+
+  alias BankAccount.Guardian
+  import Comeonin.Bcrypt, only: [checkpw: 2, dummy_checkpw: 0]
+
+  @doc """
+  Gets a single user.
+
+  Raises `Ecto.NoResultsError` if the User does not exist.
+
+  ## Examples
+
+      iex> get_user!(123)
+      %User{}
+
+      iex> get_user!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_user!(id), do: Repo.get!(User, id)
+
+  @doc """
+  Creates a user.
+
+  ## Examples
+
+      iex> create_user(%{field: value})
+      {:ok, %User{}}
+
+      iex> create_user(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_user(attrs \\ %{}) do
+    %User{}
+    |> User.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def token_sign_in(email, password) do
+    case email_password_auth(email, password) do
+      {:ok, user} ->
+        Guardian.encode_and_sign(user)
+      _ ->
+        {:error, :unauthorized}
+    end
+  end
+
+  defp email_password_auth(email, password) when is_binary(email) and is_binary(password) do
+    with {:ok, user} <- get_by_email(email),
+    do: verify_password(password, user)
+  end
+
+  defp get_by_email(email) when is_binary(email) do
+    case Repo.get_by(User, email: email) do
+      nil ->
+        dummy_checkpw()
+        {:error, "Login error."}
+      user ->
+        {:ok, user}
+    end
+  end
+
+  defp verify_password(password, %User{} = user) when is_binary(password) do
+    if checkpw(password, user.password_hash) do
+      {:ok, user}
+    else
+      {:error, :invalid_password}
+    end
   end
 end
