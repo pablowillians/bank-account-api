@@ -6,7 +6,7 @@ Primeiramente, você precisará contar com o [Docker](https://www.docker.com/) i
 
 Então para inicializar a aplicação execute:
 
-`docker-compose up -d web`
+`docker-compose run --rm web mix deps.get && docker-compose up -d web`
 
 Após este comando o projeto estará funcionando no endereço `http://localhost:4000`
 
