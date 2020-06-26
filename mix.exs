@@ -26,8 +26,7 @@ defmodule BankAccount.Umbrella.MixProject do
   # and cannot be accessed from applications inside the apps/ folder.
   defp deps do
     [
-      {:excoveralls, "~> 0.10", only: :test},
-      {:brcpfcnpj, "~> 0.2.0"}
+      {:excoveralls, "~> 0.10", only: :test}
     ]
   end
 

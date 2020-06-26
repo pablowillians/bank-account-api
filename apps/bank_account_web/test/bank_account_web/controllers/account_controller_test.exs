@@ -1,5 +1,6 @@
 defmodule BankAccountWeb.AccountControllerTest do
   use BankAccountWeb.ConnCase
+  import BankAccount.Guardian
 
   alias BankAccount.Accounts
 
@@ -11,9 +12,8 @@ defmodule BankAccountWeb.AccountControllerTest do
     email: "some@email",
     gender: "some gender",
     name: "some name",
-    referral_code: "18273645",
-    state: "some state",
-    status: true
+    indication_referral_code: "18273645",
+    state: "some state"
   }
   @update_attrs %{
     birth_date: "2011-05-18",
@@ -23,19 +23,34 @@ defmodule BankAccountWeb.AccountControllerTest do
     email: "some_updated@email",
     gender: "some updated gender",
     name: "some updated name",
-    referral_code: "81726354",
-    state: "some updated state",
-    status: false
+    indication_referral_code: "81726354",
+    state: "some updated state"
   }
-  @invalid_attrs %{birth_date: nil, city: nil, country: nil, cpf: nil, email: nil, gender: nil, name: nil, referral_code: nil, state: nil, status: nil}
+  @invalid_attrs %{birth_date: nil, city: nil, country: nil, cpf: nil, email: nil, gender: nil, name: nil, referral_code: nil, state: nil}
 
   def fixture(:account) do
     {:ok, account} = Accounts.create_account(@create_attrs)
     account
   end
 
+  def fixture(:user) do
+    {:ok, user} = Accounts.create_user(%{
+                    email: "some@email",
+                    password: "some password",
+                    password_confirmation: "some password"
+                  })
+    user
+  end
+
   setup %{conn: conn} do
-    {:ok, conn: put_req_header(conn, "accept", "application/json")}
+    {:ok, token, _} = encode_and_sign(fixture(:user))
+
+    conn =
+      conn
+      |> put_req_header("accept", "application/json")
+      |> put_req_header("authorization", "bearer: " <> token)
+
+    {:ok, conn: conn}
   end
 
   describe "create account" do
@@ -53,8 +68,8 @@ defmodule BankAccountWeb.AccountControllerTest do
                "gender" => "some gender",
                "name" => "some name",
                "referral_code" => referral_code,
-               "state" => "some state",
-               "status" => true
+               "indication_referral_code" => "18273645",
+               "state" => "some state"
              } = json_response(conn, 201)["data"]
       assert cpf == @create_attrs.cpf
       assert String.match?(referral_code, ~r/[0-9]{8}/)
@@ -70,9 +85,7 @@ defmodule BankAccountWeb.AccountControllerTest do
     setup [:create_account]
 
     test "renders account when data is valid", %{conn: conn} do
-      update_attrs = Map.delete(@update_attrs, "status")
-      conn = post(conn, Routes.account_path(conn, :create_or_update), account: update_attrs)
-      assert %{"id" => id} = json_response(conn, 201)["data"]
+      conn = post(conn, Routes.account_path(conn, :create_or_update), account: @update_attrs)
 
       assert %{
                "id" => id,
@@ -84,8 +97,8 @@ defmodule BankAccountWeb.AccountControllerTest do
                "gender" => "some updated gender",
                "name" => "some updated name",
                "referral_code" => referral_code,
-               "state" => "some updated state",
-               "status" => true
+               "indication_referral_code" => "81726354",
+               "state" => "some updated state"
              } = json_response(conn, 201)["data"]
       assert cpf == @update_attrs.cpf
       assert String.match?(referral_code, ~r/[0-9]{8}/)

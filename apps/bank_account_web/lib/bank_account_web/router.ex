@@ -5,8 +5,20 @@ defmodule BankAccountWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :ensure_jwt_auth do
+    plug BankAccountWeb.Auth.Pipeline
+  end
+
   scope "/api", BankAccountWeb do
     pipe_through :api
+
+    post "/sign_up", UserController, :sign_up
+    post "/sign_in", UserController, :sign_in
+  end
+
+  scope "/api", BankAccountWeb do
+    pipe_through [:api, :ensure_jwt_auth]
+
     post "/account", AccountController, :create_or_update
     get "/account/indications/:referral_code", AccountController, :list_indications
   end

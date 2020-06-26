@@ -28,4 +28,10 @@ defmodule BankAccountWeb.FallbackController do
     |> put_view(BankAccountWeb.ErrorView)
     |> render("error.json", error: "Account is incomplete. You must complete your register before using this feature.")
   end
+
+  def call(conn, {:error, :unauthorized}) do
+    conn
+    |> put_status(:unauthorized)
+    |> json(%{error: "Login error"})
+  end
 end

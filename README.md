@@ -4,21 +4,55 @@
 
 Primeiramente, você precisará contar com o [Docker](https://www.docker.com/) instalado.
 
-As etapas para rodar o projeto em seu ambiente são:
+Então para inicializar a aplicação execute:
 
-1. Preparar o banco de dados da aplicação
+`docker-compose up -d web`
 
-    `docker-compose run --rm web mix ecto.create && mix ecto.migrate`
+Após este comando o projeto estará funcionando no endereço `http://localhost:4000`
 
-2. Inicializar a aplicação:
+## Utilizando a aplicação
 
-    `docker-compose up -d web`
+Primeiro de tudo, vamos criar um usuário para gerir nossas contas:
 
-    Após este comando o projeto estará funcionando no endereço `http://localhost:4000`
+Faça uma requisição para `POST /api/sign_up` com um payload semelhante a:
 
-Após feitas estas etapas, você terá acesso às seguintes rotas via HTTP:
+```json
+{
+	"user": {
+		"email": "foo@bar.com",
+		"password": "somePassword",
+		"password_confirmation": "somePassword"
+	}
+}
+```
 
-1. `POST /api/accounts`
+Após isso, faça login através de uma nova requisição para `POST /api/sign_in` com seus dados de autenticação, como no exemplo:
+
+```json
+{
+	"email": "foo@bar.com",
+	"password": "somePassword"
+}
+```
+
+Após feitas estas etapas, você terá acesso às seguintes rotas via HTTP usando o token JWT retornado na requisição anterior como cabeçalho de autorização nas requisições:
+
+1. `POST /api/accounts`, exemplo de payload:
+	```json
+	{
+		"account": {
+			"cpf": "99999999999",
+			"name": "Name Last Name",
+			"email": "email@valid.com",
+			"birth_date": "1991-01-29",
+			"city": "Curitiba",
+			"country": "BR",
+			"gender": "male",
+			"state": "PR",
+			"indication_referral_code": "883632"
+		}
+	}
+	```
 2. `GET /api/accounts/indications/[referral_code]` onde `[referral_code]` deverá ser substituido pelo referral_code da conta criada, para visualizar as indicações
 
 ## Como executar os testes da aplicação

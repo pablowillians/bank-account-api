@@ -39,7 +39,11 @@ defmodule BankAccount.MixProject do
       {:phoenix_pubsub, "~> 2.0"},
       {:ecto_sql, "~> 3.4"},
       {:postgrex, ">= 0.0.0"},
-      {:jason, "~> 1.0"}
+      {:jason, "~> 1.0"},
+      {:brcpfcnpj, "~> 0.2.0"},
+      {:guardian, "~> 2.0"},
+      {:bcrypt_elixir, "~> 2.0"},
+      {:comeonin, "~> 5.3"},
     ]
   end
 
